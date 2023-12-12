@@ -240,3 +240,8 @@ def lambda_handler(event, context):
     s3_client.upload_file(upload_path, bucket, 'resize_{}'.format(key))
 
 </code></pre>
+
+* 해결된 사진
+
+  ![화면 캡처 2023-12-12 150016](https://github.com/KIMGUUNI/test01/assets/142488092/0c831683-1ba7-496f-bac4-bc00cd2d7fec)
+
