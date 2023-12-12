@@ -147,3 +147,61 @@ rank().then(function(resolvedData) {
 
    
 
+
+## AWS S3 사진관리 문제
+
+* 문제상황
+	* 사진을 대량으로 업로드 되는 커뮤니티 사이트의 사진을 관리하는 방법이 필요했다. 또 이름이 중복되어있는 사진을 저장했을 때 덮어 씌워지는 문제가 발생했다.
+
+  ![화면 캡처 2023-12-07 190706](https://github.com/KIMGUUNI/test01/assets/142488092/bbc10616-06d8-4c7f-b466-ff5c19260a44)
+
+
+  * 문제 코드
+  	 *  S3의 경로에 저장하는 코드
+   
+      
+ <pre><code> 
+	//사진 저장하는 기능
+ const upload = new AWS.S3.ManagedUpload({
+			params: {
+				Bucket: albumBucketName,
+				Key: file.name,
+				Body: file,
+				ACL: "public-read"
+			}
+		});
+ </code></pre>
+
+* 문제해결
+	* 그룹마다 각각 폴더에 저장하는 경로를 만들고 사진 이름이 중복되지 않게 범용 고유 식별자 UUID를 사용해서 사진을 관리했다.
+ 
+
+<pre><code>
+
+	let randomRoot = guid();
+// 사진 저장하는 기능
+		const upload = new AWS.S3.ManagedUpload({
+			params: {
+				Bucket: albumBucketName,
+				Key: 'images/Group' + fileS3Root+ '/' + randomRoot + '_' + year + '_' + month + '_' + day + '_' + file.name,
+				Body: file,
+				ACL: "public-read"
+			}
+		});
+
+	
+// UUID 생성함수
+	function guid() {
+		function s4() {
+			return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
+		}
+		return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+	}
+</code></pre>
+
+* 해결된 사진
+
+  
+ ![화면 캡처 2023-12-07 190159](https://github.com/KIMGUUNI/test01/assets/142488092/f0f2cdc9-36c6-472b-8652-1c1e09ad22a7)
+
+
