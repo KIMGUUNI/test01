@@ -205,3 +205,38 @@ rank().then(function(resolvedData) {
  ![화면 캡처 2023-12-07 190159](https://github.com/KIMGUUNI/test01/assets/142488092/f0f2cdc9-36c6-472b-8652-1c1e09ad22a7)
 
 
+
+## AWS Lambda
+
+* 커뮤니티 페이지 속도를 높히기 위해 원본이 아닌 리사이징 된 사진을 저장하고 사용해야 한다. 그렇기 떄문에 S3에 원본사진과 리사이징된 사진을 동시에 저장을 해야했고, 업로드 요청을 두번 보내야 했기 때문에 비효율적인 호출이 발생하는 문제가 생겼다.
+
+* 문제해결
+	*  AWS에서 제공하는 람다 함수를 사용해서 S3에 사진을 저장하면 이벤트 알람을 호출해 자동으로 리사이징해서 저장할 수 있게 했다.
+
+<pre><code>
+
+//사진 리사이징 함수
+def resize_image(image_path, resized_path):
+  with Image.open(image_path) as image:
+    image.thumbnail(tuple(x / 2 for x in image.size))
+    image.save(resized_path, quality=30)
+
+// S3에 리사이징 된 이미지를 저장하는 함수
+def lambda_handler(event, context):
+  for record in event['Records']:
+    bucket = record['s3']['bucket']['name']
+    key = unquote_plus(record['s3']['object']['key'])
+    print(bucket)
+    print(key)
+    tmpkey = key.replace('/', '')
+    print(tmpkey)
+    download_path = '/tmp/{}{}'.format(uuid.uuid4(), tmpkey)
+    print(download_path)
+    upload_path = '/tmp/resized-{}'.format(tmpkey)
+    print(upload_path)
+    print('resize_{}'.format(key))
+    s3_client.download_file(bucket, key, download_path)
+    resize_image(download_path, upload_path)
+    s3_client.upload_file(upload_path, bucket, 'resize_{}'.format(key))
+
+</code></pre>
